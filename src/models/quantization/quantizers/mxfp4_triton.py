@@ -196,7 +196,10 @@ def mxfp4_forward_kernel_wrapper(
     if stochastic_round:
         seed = randint(0, 1000000)
     else:
-        seed = None
+        # triton >=3.x rejects None for the non-constexpr `seed: int` kernel arg at launch
+        # ("'NoneType' cannot be interpreted as an integer"); seed is only read inside the
+        # stochastic_round=True branch (dead-code-eliminated here), so 0 is safe.
+        seed = 0
     
     # Get total number of elements and calculate grid for launching the kernel
     n_elements = x.numel()
