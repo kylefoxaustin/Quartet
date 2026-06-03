@@ -5,7 +5,12 @@ from datasets import load_dataset
 import os
 
 
-hf_tknzr = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+# Lazy/guarded: meta-llama/Llama-2-7b-hf is a GATED repo (403 without auth). Only c4 needs it;
+# importing this module (e.g. for wikitext) must not fail at import time.
+try:
+    hf_tknzr = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+except Exception:
+    hf_tknzr = None
 
 
 def get_c4_data(datasets_dir, num_proc=40):
