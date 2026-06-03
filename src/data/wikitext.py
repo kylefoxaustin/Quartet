@@ -11,10 +11,14 @@ def get_wikitext_data(datasets_base_dir):
     if not os.path.exists(WIKITEXT_DATA_PATH):
         os.makedirs(WIKITEXT_DATA_PATH, exist_ok=True)
         print("downloading data and tokenizing (1-2 min)")
-        raw_data_source = "https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-103-raw-v1.zip"
-        urllib.request.urlretrieve(
-            raw_data_source, os.path.join(WIKITEXT_DATA_PATH, "data.zip")
-        )
+        # original metamind S3 url is dead (301); Smerity mirror serves the same zip but
+        # blocks the default Python User-Agent (403), so send a browser UA.
+        raw_data_source = "https://wikitext.smerity.com/wikitext-103-raw-v1.zip"
+        _req = urllib.request.Request(raw_data_source, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(_req) as _resp, open(
+            os.path.join(WIKITEXT_DATA_PATH, "data.zip"), "wb"
+        ) as _f:
+            _f.write(_resp.read())
 
         with zipfile.ZipFile(
             os.path.join(WIKITEXT_DATA_PATH, "data.zip"), "r"
